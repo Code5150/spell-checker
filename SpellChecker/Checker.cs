@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace SpellChecker
 {
-    class Checker
+    public class Checker
     {
         public HashSet<string> Dictionary { get; set; }
 

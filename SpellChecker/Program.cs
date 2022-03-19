@@ -7,7 +7,6 @@ namespace SpellChecker
 {
     class Program
     {
-
         static void Main(string[] args)
         {
             var s = String.Empty;
@@ -32,10 +31,14 @@ namespace SpellChecker
                 }
                 s = Console.ReadLine();
             }
-            foreach(var l in linesToCorrect.Select(line => checker.CheckLine(line, new char[] { ' ' })))
+            if (linesToCorrect.Count > 0)
             {
-                Console.WriteLine(l);
+                foreach (var l in linesToCorrect.Select(line => checker.CheckLine(line.ToLower(), new char[] { ' ' })))
+                {
+                    Console.WriteLine(l);
+                }
             }
+            Console.ReadLine();
         }
     }
 }
