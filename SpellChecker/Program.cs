@@ -1,14 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace SpellChecker
 {
     class Program
     {
+
         static void Main(string[] args)
         {
-            var checker = new Checker(new HashSet<string>());
-            Console.WriteLine(checker.check("ab"));
+            var s = String.Empty;
+            var isEqSymbol = new Regex("\\=+");
+            var dict = new HashSet<string>();
+            while (!isEqSymbol.IsMatch(s))
+            {
+                if (!String.IsNullOrEmpty(s))
+                {
+                    foreach (var w in s.Split(' ')) { dict.Add(w); }
+                }
+                s = Console.ReadLine();
+            }
+            var checker = new Checker(dict);
+            var linesToCorrect = new List<string>();
+            s = String.Empty;
+            while (!isEqSymbol.IsMatch(s))
+            {
+                if (!String.IsNullOrEmpty(s))
+                {
+                    linesToCorrect.Add(s);
+                }
+                s = Console.ReadLine();
+            }
+            foreach(var l in linesToCorrect.Select(line => checker.CheckLine(line, new char[] { ' ' })))
+            {
+                Console.WriteLine(l);
+            }
         }
     }
 }
