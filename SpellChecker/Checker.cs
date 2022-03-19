@@ -1,16 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SpellChecker
 {
-    public class OpTypes
-    {
-        public static readonly string DEL = "DEL";
-        public static readonly string INS = "INS";
-    }
     class Checker
     {
         public HashSet<string> Dictionary { get; set; }
@@ -23,13 +16,13 @@ namespace SpellChecker
         public Checker(HashSet<string> dict)
         {
             Dictionary = dict;
-            Del = s => s.Item2.Length > 0 ? new[] { $"{s.Item1}{s.Item2[1..]}" } : Array.Empty<string>();
+            Del = s => s.Item2.Length > 0 ? new[] { $"{s.Item1}{s.Item2.Substring(1)}" } : Array.Empty<string>();
             Ins = s => from l in Letters select $"{s.Item1}{l}{s.Item2}";
         }
 
         public string CheckLine(string line, char[] sep)
         {
-            return line.Split(sep).Select(word => Check(word)).Aggregate((first, next) => $"{first} {next}");
+            return line.Split(sep).AsParallel().AsOrdered().Select(word => Check(word)).Aggregate((first, next) => $"{first} {next}");
         }
 
         public string Check(string word)
@@ -38,7 +31,9 @@ namespace SpellChecker
             {
                 return word;
             }
-            var permutated = GetCorrections(Edits(word.ToLower(), Del).Union(Edits(word.ToLower(), Ins)));
+            // word length == 35: 945 permutations (35 deletes and 910(35*26) inserts
+            bool largeSize = word.Length > 35;
+            var permutated = GetCorrections(Edits(word.ToLower(), Del).Union(Edits(word.ToLower(), Ins)), largeSize);
             if (!String.IsNullOrEmpty(permutated))
             {
                 if (permutated.Split(' ').Length == 1)
@@ -47,7 +42,7 @@ namespace SpellChecker
                 }
                 return "{" + permutated + "}";
             }
-            permutated = GetCorrections(Edits(word.ToLower(), Del, Ins));
+            permutated = GetCorrections(Edits(word.ToLower(), Del, Ins), largeSize);
             if (!String.IsNullOrEmpty(permutated))
             {
                 if (permutated.Split(' ').Length == 1)
@@ -59,9 +54,15 @@ namespace SpellChecker
             return "{" + word + "?}";
         }
 
-        protected string GetCorrections(IEnumerable<string> permutated)
+        protected string GetCorrections(IEnumerable<string> permutated, bool largeSize = false)
         {
-            return permutated.Where(s => Dictionary.Contains(s))
+            bool parallel = Dictionary.Count >= 1000 || largeSize;
+            if (parallel)
+            {
+                return Dictionary.AsParallel().AsOrdered().Intersect(permutated.AsParallel())
+                    .Aggregate(String.Empty, (first, next) => $"{first} {next}").Trim();
+            }
+            return Dictionary.Intersect(permutated)
                 .Aggregate(String.Empty, (first, next) => $"{first} {next}").Trim();
         }
 
