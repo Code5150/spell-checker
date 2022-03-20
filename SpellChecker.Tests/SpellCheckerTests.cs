@@ -18,7 +18,7 @@ namespace SpellChecker.Tests
                 "was hints pliant"
             };
             var checker = new Checker(dict);
-            var result = linesToCorrect.Select(line => checker.CheckLine(line, new char[] { ' ' })).Aggregate((first, next) => $"{first} {next}").Trim();
+            var result = linesToCorrect.Select(line => checker.CheckLine(line.ToLower(), new char[] { ' ' })).Aggregate((first, next) => $"{first} {next}").Trim();
             Assert.Equal("the {rame?} in pain falls {main mainly} on the plain was {hints?} plaint", result);
         }
 
@@ -33,7 +33,7 @@ namespace SpellChecker.Tests
                 "was hints pliant"
             };
             var checker = new Checker(dict);
-            var result = linesToCorrect.Select(line => checker.CheckLine(line, new char[] { ' ' })).Aggregate((first, next) => $"{first} {next}").Trim();
+            var result = linesToCorrect.Select(line => checker.CheckLine(line.ToLower(), new char[] { ' ' })).Aggregate((first, next) => $"{first} {next}").Trim();
             Assert.Equal("the {rame?} in pain falls {mainly main tmainy} on the plain was {hints?} plaint", result);
         }
 
@@ -48,8 +48,23 @@ namespace SpellChecker.Tests
                 "was hints pliant"
             };
             var checker = new Checker(dict);
-            var result = linesToCorrect.Select(line => checker.CheckLine(line, new char[] { ' ' })).Aggregate((first, next) => $"{first} {next}").Trim();
+            var result = linesToCorrect.Select(line => checker.CheckLine(line.ToLower(), new char[] { ' ' })).Aggregate((first, next) => $"{first} {next}").Trim();
             Assert.Equal("{hte?} {rame?} {in?} {pain?} {fells?} {mainy?} {oon?} {teh?} {lain?} {was?} {hints?} {pliant?}", result);
+        }
+
+        [Fact]
+        public void EmptyTextTest()
+        {
+            var dict = new HashSet<string>();
+            var linesToCorrect = new List<string>()
+            {
+                "",
+                "         ",
+                null
+            };
+            var checker = new Checker(dict);
+            var result = linesToCorrect.Select(line => checker.CheckLine(line, new char[] { ' ' })).Aggregate((first, next) => $"{first} {next}").Trim();
+            Assert.Equal("", result);
         }
 
         [Fact]

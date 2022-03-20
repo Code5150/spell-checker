@@ -22,7 +22,9 @@ namespace SpellChecker
 
         public string CheckLine(string line, char[] sep)
         {
-            return line.Split(sep).AsParallel().AsOrdered().Select(word => Check(word)).Aggregate((first, next) => $"{first} {next}");
+            return !String.IsNullOrEmpty(line) && !String.IsNullOrWhiteSpace(line) 
+                ? line.Split(sep).AsParallel().AsOrdered().Select(word => Check(word)).Aggregate((first, next) => $"{first} {next}")
+                : line;
         }
 
         public string Check(string word)
@@ -32,8 +34,8 @@ namespace SpellChecker
                 return word;
             }
             // word length == 35: 945 permutations (35 deletes and 910(35*26) inserts
-            bool largeSize = word.Length > 35;
-            var permutated = GetCorrections(Edits(word.ToLower(), Del).Union(Edits(word.ToLower(), Ins)), largeSize);
+            bool isParallel = Dictionary.Count >= 900 || word.Length > 34;
+            var permutated = GetCorrections(Edits(word.ToLower(), Del).Union(Edits(word.ToLower(), Ins)), isParallel);
             if (!String.IsNullOrEmpty(permutated))
             {
                 if (permutated.Split(' ').Length == 1)
@@ -42,7 +44,7 @@ namespace SpellChecker
                 }
                 return "{" + permutated + "}";
             }
-            permutated = GetCorrections(Edits(word.ToLower(), Del, Ins), largeSize);
+            permutated = GetCorrections(Edits(word.ToLower(), Del, Ins), isParallel);
             if (!String.IsNullOrEmpty(permutated))
             {
                 if (permutated.Split(' ').Length == 1)
@@ -54,9 +56,8 @@ namespace SpellChecker
             return "{" + word + "?}";
         }
 
-        protected string GetCorrections(IEnumerable<string> permutated, bool largeSize = false)
+        protected string GetCorrections(IEnumerable<string> permutated, bool parallel = false)
         {
-            bool parallel = Dictionary.Count >= 1000 || largeSize;
             if (parallel)
             {
                 return Dictionary.AsParallel().AsOrdered().Intersect(permutated.AsParallel())

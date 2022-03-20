@@ -22,13 +22,10 @@ namespace SpellChecker
             }
             var checker = new Checker(dict);
             var linesToCorrect = new List<string>();
-            s = String.Empty;
+            s = Console.ReadLine();
             while (!isEqSymbol.IsMatch(s))
             {
-                if (!String.IsNullOrEmpty(s))
-                {
-                    linesToCorrect.Add(s);
-                }
+                linesToCorrect.Add(s);
                 s = Console.ReadLine();
             }
             if (linesToCorrect.Count > 0)
